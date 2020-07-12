@@ -87,10 +87,10 @@ def YOLO():
         prev_time = time.time()
         ret, frame_read = cap.read()
 
-        frame_rgb = cv2.cvtColor(frame_read, cv2.COLOR_BGR2RGB)
+        frame = cv2.cvtColor(frame_read, cv2.COLOR_BGR2RGB)
 
         # Extract image as PyTorch tensor
-        img = transforms.ToTensor()(frame_rgb)
+        img = transforms.ToTensor()(frame)
 
         # Pad to square resolution
         img, _ = pad_to_square(img, 0)
@@ -103,21 +103,22 @@ def YOLO():
         with torch.no_grad():
             detections = model(input_imgs)
             detections = non_max_suppression(detections, opt.conf_thres, opt.nms_thres)
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
         detections = list(filter(lambda x: x is not None, detections))
         if detections is not None and len(detections) > 0:
             # Rescale boxes to original image
-            detections = rescale_boxes(detections[0], opt.img_size, frame_rgb.shape[:2])
-            frame_rgb = cvDrawBoxes(frame_rgb, detections, classes)
+            detections = rescale_boxes(detections[0], opt.img_size, frame.shape[:2])
+            frame = cvDrawBoxes(frame, detections, classes)
             current_time = datetime.datetime.now()
             if int(time.time()*10) % 10 == 0:
                 str_date = datetime.datetime.strftime(current_time, "%Y%m%d")
                 str_time = datetime.datetime.strftime(current_time, "%Y%m%d%H%M%S")
                 os.makedirs(os.path.join(opt.output, str_date), exist_ok=True)
-                cv2.imwrite(os.path.join(opt.output, str_date, str_time + ".jpg"), frame_rgb)
+                cv2.imwrite(os.path.join(opt.output, str_date, str_time + ".jpg"), frame)
         # print(1/(time.time()-prev_time))
         if opt.display:
-            cv2.imshow('Demo', frame_rgb)
+            cv2.imshow('Demo', frame)
             cv2.waitKey(3)
     cap.release()
     out.release()
