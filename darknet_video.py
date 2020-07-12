@@ -2,7 +2,11 @@ from __future__ import division
 
 from models import *
 from utils.utils import *
-from utils.datasets import *
+from utils.datasets import (
+    resize,
+    pad_to_square
+)
+import torchvision.transforms as transforms
 
 import os
 import sys
@@ -99,7 +103,7 @@ def YOLO():
             img = resize(img, opt.img_size)
             img = img.unsqueeze(0)
             # Configure input
-            input_imgs = Variable(img.type(Tensor))
+            input_imgs = nn.Variable(img.type(Tensor))
             # Get detections
             with torch.no_grad():
                 detections = model(input_imgs)
