@@ -3,7 +3,6 @@ import random
 import os
 import sys
 import numpy as np
-from PIL import Image
 import torch
 import torch.nn.functional as F
 
@@ -36,7 +35,9 @@ def random_resize(images, min_size=288, max_size=448):
     return images
 
 
+from PIL import Image
 class ImageFolder(Dataset):
+
     def __init__(self, folder_path, img_size=416):
         self.files = sorted(glob.glob("%s/*.*" % folder_path))
         self.img_size = img_size
