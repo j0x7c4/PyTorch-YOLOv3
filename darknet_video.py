@@ -56,6 +56,7 @@ def YOLO():
     parser.add_argument("--nms_thres", type=float, default=0.2, help="iou thresshold for non-maximum suppression")
     parser.add_argument("--batch_size", type=int, default=1, help="size of the batches")
     parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
+    parser.add_argument("--video", type=str, required=True, help="input video")
     opt = parser.parse_args()
     print(opt)
 
@@ -76,7 +77,7 @@ def YOLO():
     Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
     #cap = cv2.VideoCapture(0)
-    cap = cv2.VideoCapture("/home/jie/Videos/person.mp4")
+    cap = cv2.VideoCapture(opt.video)
     cap.set(3, 1280)
     cap.set(4, 720)
     # out = cv2.VideoWriter(
