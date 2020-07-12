@@ -124,7 +124,7 @@ def YOLO():
         except Exception as e:
             print("fail to detect", e)
     cap.release()
-    out.release()
+    # out.release()
 
 
 if __name__ == "__main__":
