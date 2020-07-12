@@ -84,42 +84,45 @@ def YOLO():
     print("Starting the YOLO loop...")
 
     while True:
-        prev_time = time.time()
-        ret, frame_read = cap.read()
+        try:
+            prev_time = time.time()
+            ret, frame_read = cap.read()
 
-        frame = cv2.cvtColor(frame_read, cv2.COLOR_BGR2RGB)
+            frame = cv2.cvtColor(frame_read, cv2.COLOR_BGR2RGB)
 
-        # Extract image as PyTorch tensor
-        img = transforms.ToTensor()(frame)
+            # Extract image as PyTorch tensor
+            img = transforms.ToTensor()(frame)
 
-        # Pad to square resolution
-        img, _ = pad_to_square(img, 0)
-        # Resize
-        img = resize(img, opt.img_size)
-        img = img.unsqueeze(0)
-        # Configure input
-        input_imgs = Variable(img.type(Tensor))
-        # Get detections
-        with torch.no_grad():
-            detections = model(input_imgs)
-            detections = non_max_suppression(detections, opt.conf_thres, opt.nms_thres)
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+            # Pad to square resolution
+            img, _ = pad_to_square(img, 0)
+            # Resize
+            img = resize(img, opt.img_size)
+            img = img.unsqueeze(0)
+            # Configure input
+            input_imgs = Variable(img.type(Tensor))
+            # Get detections
+            with torch.no_grad():
+                detections = model(input_imgs)
+                detections = non_max_suppression(detections, opt.conf_thres, opt.nms_thres)
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
-        detections = list(filter(lambda x: x is not None, detections))
-        if detections is not None and len(detections) > 0:
-            # Rescale boxes to original image
-            detections = rescale_boxes(detections[0], opt.img_size, frame.shape[:2])
-            frame = cvDrawBoxes(frame, detections, classes)
-            current_time = datetime.datetime.now()
-            if int(time.time()*10) % 10 == 0:
-                str_date = datetime.datetime.strftime(current_time, "%Y%m%d")
-                str_time = datetime.datetime.strftime(current_time, "%Y%m%d%H%M%S")
-                os.makedirs(os.path.join(opt.output, str_date), exist_ok=True)
-                cv2.imwrite(os.path.join(opt.output, str_date, str_time + ".jpg"), frame)
-        # print(1/(time.time()-prev_time))
-        if opt.display:
-            cv2.imshow('Demo', frame)
-            cv2.waitKey(3)
+            detections = list(filter(lambda x: x is not None, detections))
+            if detections is not None and len(detections) > 0:
+                # Rescale boxes to original image
+                detections = rescale_boxes(detections[0], opt.img_size, frame.shape[:2])
+                frame = cvDrawBoxes(frame, detections, classes)
+                current_time = datetime.datetime.now()
+                if int(time.time()*10) % 10 == 0:
+                    str_date = datetime.datetime.strftime(current_time, "%Y%m%d")
+                    str_time = datetime.datetime.strftime(current_time, "%Y%m%d%H%M%S")
+                    os.makedirs(os.path.join(opt.output, str_date), exist_ok=True)
+                    cv2.imwrite(os.path.join(opt.output, str_date, str_time + ".jpg"), frame)
+            # print(1/(time.time()-prev_time))
+            if opt.display:
+                cv2.imshow('Demo', frame)
+                cv2.waitKey(3)
+        except Exception as e:
+            print("fail to detect", e)
     cap.release()
     out.release()
 
