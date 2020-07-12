@@ -113,6 +113,7 @@ class YOLOLayer(nn.Module):
         self.num_classes = num_classes
         self.ignore_thres = 0.5
         self.mse_loss = nn.MSELoss()
+        self.l1_loss = nn.L1Loss()
         self.bce_loss = nn.BCELoss()
         self.obj_scale = 1
         self.noobj_scale = 100
@@ -189,10 +190,14 @@ class YOLOLayer(nn.Module):
             )
 
             # Loss : Mask outputs to ignore non-existing objects (except with conf. loss)
-            loss_x = self.mse_loss(x[obj_mask], tx[obj_mask])
-            loss_y = self.mse_loss(y[obj_mask], ty[obj_mask])
-            loss_w = self.mse_loss(w[obj_mask], tw[obj_mask])
-            loss_h = self.mse_loss(h[obj_mask], th[obj_mask])
+            # loss_x = self.mse_loss(x[obj_mask], tx[obj_mask])
+            # loss_y = self.mse_loss(y[obj_mask], ty[obj_mask])
+            # loss_w = self.mse_loss(w[obj_mask], tw[obj_mask])
+            # loss_h = self.mse_loss(h[obj_mask], th[obj_mask])
+            loss_x = self.l1_loss(x[obj_mask], tx[obj_mask])
+            loss_y = self.l1_loss(y[obj_mask], ty[obj_mask])
+            loss_w = self.l1_loss(w[obj_mask], tw[obj_mask])
+            loss_h = self.l1_loss(h[obj_mask], th[obj_mask])
             loss_conf_obj = self.bce_loss(pred_conf[obj_mask], tconf[obj_mask])
             loss_conf_noobj = self.bce_loss(pred_conf[noobj_mask], tconf[noobj_mask])
             loss_conf = self.obj_scale * loss_conf_obj + self.noobj_scale * loss_conf_noobj
