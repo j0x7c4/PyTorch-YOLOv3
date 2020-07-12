@@ -57,6 +57,7 @@ def YOLO():
     parser.add_argument("--batch_size", type=int, default=1, help="size of the batches")
     parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
     parser.add_argument("--video", type=str, required=True, help="input video")
+    parser.add_argument("--display", action="store_true", default=False)
     opt = parser.parse_args()
     print(opt)
 
@@ -109,8 +110,9 @@ def YOLO():
         image = cvDrawBoxes(frame_rgb, detections, classes, img_size=opt.img_size)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         # print(1/(time.time()-prev_time))
-        cv2.imshow('Demo', image)
-        cv2.waitKey(3)
+        if opt.display:
+            cv2.imshow('Demo', image)
+            cv2.waitKey(3)
     cap.release()
     out.release()
 
