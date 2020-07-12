@@ -26,24 +26,20 @@ def convertBack(x, y, w, h):
     return xmin, ymin, xmax, ymax
 
 
-def cvDrawBoxes(img, detections, classes, img_size=416):
+def cvDrawBoxes(img, detections, classes):
     # Draw bounding boxes and labels of detections
-    detections = list(filter(lambda x: x is not None, detections))
-    if detections is not None and len(detections)>0:
-        # Rescale boxes to original image
-        detections = rescale_boxes(detections[0], img_size, img.shape[:2])
-        for xmin, ymin, xmax, ymax, conf, cls_conf, cls_pred in detections:
-            label = classes[int(cls_pred)]
-            score = cls_conf.item()
-            print("\t+ Label: %s, Conf: %.5f" % (label, score))
-            pt1 = (xmin, ymin)
-            pt2 = (xmax, ymax)
-            cv2.rectangle(img, pt1, pt2, (0, 255, 0), 1)
-            cv2.putText(img,
-                        label +
-                        " [" + str(round(score * 100, 2)) + "]",
-                        (pt1[0], pt1[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                        [0, 255, 0], 2)
+    for xmin, ymin, xmax, ymax, conf, cls_conf, cls_pred in detections:
+        label = classes[int(cls_pred)]
+        score = cls_conf.item()
+        print("\t+ Label: %s, Conf: %.5f" % (label, score))
+        pt1 = (xmin, ymin)
+        pt2 = (xmax, ymax)
+        cv2.rectangle(img, pt1, pt2, (0, 255, 0), 1)
+        cv2.putText(img,
+                    label +
+                    " [" + str(round(score * 100, 2)) + "]",
+                    (pt1[0], pt1[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                    [0, 255, 0], 2)
     return img
 
 
@@ -58,6 +54,7 @@ def YOLO():
     parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
     parser.add_argument("--video", type=str, required=True, help="input video")
     parser.add_argument("--display", action="store_true", default=False)
+    parser.add_argument("--output", default="./output", help="output dir")
     opt = parser.parse_args()
     print(opt)
 
@@ -107,11 +104,20 @@ def YOLO():
             detections = model(input_imgs)
             detections = non_max_suppression(detections, opt.conf_thres, opt.nms_thres)
 
-        image = cvDrawBoxes(frame_rgb, detections, classes, img_size=opt.img_size)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        detections = list(filter(lambda x: x is not None, detections))
+        if detections is not None and len(detections) > 0:
+            # Rescale boxes to original image
+            detections = rescale_boxes(detections[0], opt.img_size, frame_rgb.shape[:2])
+            frame_rgb = cvDrawBoxes(frame_rgb, detections, classes)
+            current_time = datetime.datetime.now()
+            if int(time.time()*10) % 10 == 0:
+                str_date = datetime.datetime.strftime(current_time, "%Y%m%d")
+                str_time = datetime.datetime.strftime(current_time, "%Y%m%d%H%M%S")
+                os.makedirs(os.path.join(opt.output, str_date), exist_ok=True)
+                cv2.imwrite(os.path.join(opt.output, str_date, str_time + ".jpg"), frame_rgb)
         # print(1/(time.time()-prev_time))
         if opt.display:
-            cv2.imshow('Demo', image)
+            cv2.imshow('Demo', frame_rgb)
             cv2.waitKey(3)
     cap.release()
     out.release()
